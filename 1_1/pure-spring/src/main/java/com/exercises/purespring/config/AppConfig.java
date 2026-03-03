@@ -1,6 +1,7 @@
 package com.exercises.purespring.config;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 import com.exercises.purespring.service.MessageService;
@@ -11,16 +12,20 @@ import com.exercises.purespring.service.MessagePrinter;
 // spring wires dependencies by matching method parameters to other beans
 // Each @Bean method becomes a bean definition in the container
 @Configuration
+@ComponentScan(basePackages = "com.exercises.purespring")
 public class AppConfig {
 
-    @Bean
-    MessageService getMessageService() {
-        return new MessageService();
-    }
+    // @Bean
+    // MessageService getMessageService() {
+    //     return new MessageService();
+    // }
 
-    // Spring injects the dependency for us
-    @Bean
-    MessagePrinter getMessagePrinter(MessageService ms) {
-        return new MessagePrinter(ms);
-    }
+    // // Spring injects the dependency for us
+    // @Bean
+    // MessagePrinter getMessagePrinter(MessageService ms) {
+    //     return new MessagePrinter(ms);
+    // }
+
+    // Use @Bean when building complex objects, or need deterministic wiring, or
+    // when it comes from a third party library (Can't annotate ourselves)
 }
