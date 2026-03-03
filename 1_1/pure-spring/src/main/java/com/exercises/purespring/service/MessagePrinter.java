@@ -1,6 +1,7 @@
 package com.exercises.purespring.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.exercises.purespring.service.MessageService;
@@ -8,6 +9,11 @@ import com.exercises.purespring.service.MessageService;
 @Component
 public class MessagePrinter {
     private final MessageService messageService;
+
+    // @Autowired
+    // public MessagePrinter(@Qualifier("casualMessageService") MessageService ms) {
+    //     this.messageService = ms;
+    // }
 
     @Autowired
     public MessagePrinter(MessageService ms) {
