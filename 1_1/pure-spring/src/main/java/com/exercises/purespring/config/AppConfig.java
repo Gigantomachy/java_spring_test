@@ -3,6 +3,7 @@ package com.exercises.purespring.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 
 import com.exercises.purespring.service.MessageService;
 import com.exercises.purespring.service.MessagePrinter;
@@ -13,6 +14,7 @@ import com.exercises.purespring.service.MessagePrinter;
 // Each @Bean method becomes a bean definition in the container
 @Configuration
 @ComponentScan(basePackages = "com.exercises.purespring")
+@PropertySource("classpath:app.properties") // Maven automatically puts src/main/resources on the classpath
 public class AppConfig {
 
     // @Bean

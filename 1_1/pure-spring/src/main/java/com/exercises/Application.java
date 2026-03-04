@@ -1,6 +1,7 @@
 package com.exercises;
 
 import com.exercises.purespring.config.AppConfig;
+import com.exercises.purespring.service.AppInfoService;
 import com.exercises.purespring.service.MessagePrinter;
 import com.exercises.purespring.service.RequestTracker;
 
@@ -21,6 +22,11 @@ public class Application {
 
         System.out.println("tracker1 id: " + tracker1.trackingId);
         System.out.println("tracker2 id: " + tracker2.trackingId);
+
+        AppInfoService appInfoService = context.getBean(AppInfoService.class);
+
+        System.out.println(appInfoService.getInfo());
+        System.out.println(appInfoService.getGreeting());
 
         context.close();
     }
