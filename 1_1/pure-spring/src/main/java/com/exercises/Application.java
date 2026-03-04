@@ -2,6 +2,7 @@ package com.exercises;
 
 import com.exercises.purespring.config.AppConfig;
 import com.exercises.purespring.service.MessagePrinter;
+import com.exercises.purespring.service.RequestTracker;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -14,6 +15,12 @@ public class Application {
 
         MessagePrinter mp = context.getBean(MessagePrinter.class);
         mp.printMessage();
+
+        RequestTracker tracker1 = context.getBean(RequestTracker.class);
+        RequestTracker tracker2 = context.getBean(RequestTracker.class);
+
+        System.out.println("tracker1 id: " + tracker1.trackingId);
+        System.out.println("tracker2 id: " + tracker2.trackingId);
 
         context.close();
     }
