@@ -1,6 +1,9 @@
 package com.exercises.hellospring.controller;
 
 import com.exercises.hellospring.model.Book;
+
+import jakarta.validation.Valid;
+
 import com.exercises.hellospring.dto.PagedResponse;
 
 import org.springframework.http.HttpStatus;
@@ -62,8 +65,8 @@ public class BookController {
         page = Math.max(page, 0);
         size = Math.max(size, 0);
         
-        List<Book> filteredList = books.stream().filter(b -> author == null || author.isBlank() || b.getAuthor().equalsIgnoreCase(author))
-                                                .filter(b -> title == null || title.isBlank() || b.getTitle().equalsIgnoreCase(title)).toList();
+        List<Book> filteredList = books.stream().filter(b -> author == null || author.isBlank() || b.getAuthor().toLowerCase().contains(author.toLowerCase()))
+                                                .filter(b -> title == null || title.isBlank() || b.getTitle().toLowerCase().contains(title.toLowerCase())).toList();
         
         int fromIndex = page * size;
         int toIndex = Math.min(fromIndex + size, filteredList.size());
@@ -84,16 +87,16 @@ public class BookController {
     
     
     @PostMapping
-    public ResponseEntity<Book> createBook(@RequestBody Book book) {
+    public ResponseEntity<Book> createBook(@Valid @RequestBody Book book) {
         book.setId(counter.getAndIncrement());
         books.add(book);
         return ResponseEntity.status(HttpStatus.CREATED).body(book);
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<Book> replaceBook(@PathVariable Long id, @RequestBody Book book) {
-        for (Book bk: books) {
-            if (bk.getId() == book.getId()) {
+    public ResponseEntity<Book> replaceBook(@PathVariable Long id, @Valid @RequestBody Book book) {
+        for (Book bk : books) {
+            if (bk.getId().equals(id)) { 
                 bk.setTitle(book.getTitle());
                 bk.setAuthor(book.getAuthor());
                 bk.setYearPublished(book.getYearPublished());
@@ -101,7 +104,6 @@ public class BookController {
                 return ResponseEntity.ok(bk);
             }
         }
-        
         return ResponseEntity.notFound().build();
     }
 

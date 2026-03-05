@@ -1,10 +1,25 @@
 package com.exercises.hellospring.model;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
 public class Book {
     private Long id;
+
+    @NotBlank(message = "title is required")
+    @Size(max = 200)
     private String title;
+
+    @NotBlank(message = "Author is required")
     private String author;
+
+    @Min(1450)
     private int yearPublished;
+
+    @NotBlank
+    @Pattern(regexp = "^(978|979)-\\d{10}$", message = "ISBN must be in format 978-XXXXXXXXXX or 979-XXXXXXXXXX")
     private String isbn;
 
     public Book(Long id, String title, String author, int yearPublished, String isbn) {
