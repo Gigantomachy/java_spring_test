@@ -1,8 +1,8 @@
 package com.exercises.hellospring.controller;
 
 import com.exercises.hellospring.model.Book;
+import com.exercises.hellospring.dto.PagedResponse;
 
-import org.apache.catalina.connector.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,15 +14,14 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 
 // import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
-
-
-
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/books")
@@ -54,6 +53,35 @@ public class BookController {
         }
         return null;
     }
+
+    @GetMapping("/search")
+    public PagedResponse<Book> getBookSearch(@RequestParam(required = false)     String author, 
+                                @RequestParam(required = false)     String title, 
+                                @RequestParam(defaultValue = "0")   int page, 
+                                @RequestParam(defaultValue = "10")  int size) {
+        page = Math.max(page, 0);
+        size = Math.max(size, 0);
+        
+        List<Book> filteredList = books.stream().filter(b -> author == null || author.isBlank() || b.getAuthor().equalsIgnoreCase(author))
+                                                .filter(b -> title == null || title.isBlank() || b.getTitle().equalsIgnoreCase(title)).toList();
+        
+        int fromIndex = page * size;
+        int toIndex = Math.min(fromIndex + size, filteredList.size());
+        int totalPages = (filteredList.size() + size - 1) / size;
+
+        List<Book> result;
+
+        if (fromIndex >= filteredList.size()) {
+            result = Collections.emptyList();
+        } else {
+            result = filteredList.subList(fromIndex, toIndex);
+        }
+
+        PagedResponse<Book> response = new PagedResponse<>(result, page, size, filteredList.size(), totalPages);
+        
+        return response;
+    }
+    
     
     @PostMapping
     public ResponseEntity<Book> createBook(@RequestBody Book book) {
