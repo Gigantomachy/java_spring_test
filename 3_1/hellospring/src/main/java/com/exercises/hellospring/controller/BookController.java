@@ -5,6 +5,7 @@ import com.exercises.hellospring.model.Book;
 import jakarta.validation.Valid;
 
 import com.exercises.hellospring.dto.PagedResponse;
+import com.exercises.hellospring.exception.ResourceNotFoundException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,11 +51,11 @@ public class BookController {
     @GetMapping("/{id}")
     public Book getBook(@PathVariable Long id) {
         for ( Book bk: books ) {
-            if (bk.getId() == id) {
+            if (bk.getId().equals(id)) {
                 return bk;
             }
         }
-        return null;
+        throw new ResourceNotFoundException("Book not found with id: " + id);
     }
 
     @GetMapping("/search")
@@ -85,7 +86,7 @@ public class BookController {
         return response;
     }
     
-    
+    // without @Valid, the validator won't run - even if fields are annotated in Book
     @PostMapping
     public ResponseEntity<Book> createBook(@Valid @RequestBody Book book) {
         book.setId(counter.getAndIncrement());
@@ -104,7 +105,7 @@ public class BookController {
                 return ResponseEntity.ok(bk);
             }
         }
-        return ResponseEntity.notFound().build();
+        throw new ResourceNotFoundException("Book not found with id: " + id);
     }
 
     @DeleteMapping("/{id}")
@@ -112,11 +113,11 @@ public class BookController {
         Iterator<Book> it = books.iterator();
         while(it.hasNext()) {
             Book bk = it.next();
-            if (bk.getId() == id) {
+            if (bk.getId().equals(id)) {
                 it.remove();
                 return ResponseEntity.noContent().build();
             }
         }
-        return ResponseEntity.notFound().build();
+        throw new ResourceNotFoundException("Book not found with id: " + id);
     }
 }

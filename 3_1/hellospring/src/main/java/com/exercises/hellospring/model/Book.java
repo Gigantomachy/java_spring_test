@@ -6,7 +6,12 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class Book {
+
+    // we want the object version of long because it supports null - and id isn't always present (in POST for example)
     private Long id;
+
+    // validation happens during data binding - Jackson deserializes the object and object is populated
+    // then the validator runs - before the @PostMapping and @PutMapping etc... methods are executed
 
     @NotBlank(message = "title is required")
     @Size(max = 200)
@@ -21,6 +26,9 @@ public class Book {
     @NotBlank
     @Pattern(regexp = "^(978|979)-\\d{10}$", message = "ISBN must be in format 978-XXXXXXXXXX or 979-XXXXXXXXXX")
     private String isbn;
+
+    // Jackson prefers default constructor + setters
+    public Book() {}
 
     public Book(Long id, String title, String author, int yearPublished, String isbn) {
         this.id = id;
