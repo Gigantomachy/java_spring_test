@@ -35,9 +35,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(err);
     }
 
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateResource(DuplicateResourceException ex) {
+        ErrorResponse err = new ErrorResponse(409, ex.getMessage(), null);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(err);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception ex) {
-        //ex.printStackTrace();
+        ex.printStackTrace();
         ErrorResponse err = new ErrorResponse(500, "An unexpected error occurred", null);
         return ResponseEntity.status(500).body(err);
     }

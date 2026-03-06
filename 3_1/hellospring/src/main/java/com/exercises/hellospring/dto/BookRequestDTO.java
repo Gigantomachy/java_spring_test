@@ -1,0 +1,68 @@
+package com.exercises.hellospring.dto;
+
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
+public class BookRequestDTO {
+
+    // validation happens during data binding - Jackson deserializes the object and object is populated
+    // then the validator runs - before the @PostMapping and @PutMapping etc... methods are executed
+
+    @NotBlank(message = "title is required")
+    @Size(max = 200)
+    private String title;
+
+    @NotBlank(message = "Author is required")
+    private String author;
+
+    @NotBlank
+    @Pattern(regexp = "^(978|979)-\\d{10}$", message = "ISBN must be in format 978-XXXXXXXXXX or 979-XXXXXXXXXX")
+    private String isbn;
+
+    @Min(1450)
+    private int yearPublished;
+
+    public BookRequestDTO() {}
+
+    public BookRequestDTO(String title, String author, int yearPublished, String isbn) {
+        this.title = title;
+        this.author = author;
+        this.isbn = isbn;
+        this.yearPublished = yearPublished;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
+    public void setIsbn(String isbn) {
+        this.isbn = isbn;
+    }
+
+    public void setYearPublished(int yearPublished) {
+        this.yearPublished = yearPublished;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public String getIsbn() {
+        return isbn;
+    }
+
+    public int getYearPublished() {
+        return yearPublished;
+    }
+    
+}

@@ -1,11 +1,12 @@
 package com.exercises.hellospring.controller;
 
-import com.exercises.hellospring.model.Book;
+import com.exercises.hellospring.service.BookService;
 
 import jakarta.validation.Valid;
 
+import com.exercises.hellospring.dto.BookRequestDTO;
+import com.exercises.hellospring.dto.BookResponseDTO;
 import com.exercises.hellospring.dto.PagedResponse;
-import com.exercises.hellospring.exception.ResourceNotFoundException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
 
 // import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,93 +28,45 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("/api/books")
 public class BookController {
     
-    private List<Book> books;
-    private AtomicLong counter;
+    BookService bookService;
 
-    public BookController() {
-        this.books = new ArrayList<Book>();
-        this.books.add(new Book(0L, "Clean Code", "Robert Martin", 2008,    "978-0132350884"));
-        this.books.add(new Book(1L, "Something Funny", "Michael Man", 2020, "976-0044350639"));
-        this.books.add(new Book(2L, "Random Stuff", "Derek Dude", 1990,    "018-1326742384"));
-
-        this.counter = new AtomicLong(3L);
+    public BookController(BookService service) {
+        this.bookService = service;
     }
 
     @GetMapping
-    public List<Book> getBooks() {
-        return this.books;
+    public List<BookResponseDTO> getBooks() {
+        return bookService.getAllBooks();
     }
 
     @GetMapping("/{id}")
-    public Book getBook(@PathVariable Long id) {
-        for ( Book bk: books ) {
-            if (bk.getId().equals(id)) {
-                return bk;
-            }
-        }
-        throw new ResourceNotFoundException("Book not found with id: " + id);
+    public ResponseEntity<BookResponseDTO> getBook(@PathVariable Long id) {
+        return ResponseEntity.status(200).body(bookService.getBookById(id));
     }
 
     @GetMapping("/search")
-    public PagedResponse<Book> getBookSearch(@RequestParam(required = false)     String author, 
-                                @RequestParam(required = false)     String title, 
-                                @RequestParam(defaultValue = "0")   int page, 
-                                @RequestParam(defaultValue = "10")  int size) {
-        page = Math.max(page, 0);
-        size = Math.max(size, 0);
-        
-        List<Book> filteredList = books.stream().filter(b -> author == null || author.isBlank() || b.getAuthor().toLowerCase().contains(author.toLowerCase()))
-                                                .filter(b -> title == null || title.isBlank() || b.getTitle().toLowerCase().contains(title.toLowerCase())).toList();
-        
-        int fromIndex = page * size;
-        int toIndex = Math.min(fromIndex + size, filteredList.size());
-        int totalPages = (filteredList.size() + size - 1) / size;
-
-        List<Book> result;
-
-        if (fromIndex >= filteredList.size()) {
-            result = Collections.emptyList();
-        } else {
-            result = filteredList.subList(fromIndex, toIndex);
-        }
-
-        PagedResponse<Book> response = new PagedResponse<>(result, page, size, filteredList.size(), totalPages);
-        
-        return response;
+    public PagedResponse<BookResponseDTO> getBookSearch(
+                                                        @RequestParam(required = false)     String author, 
+                                                        @RequestParam(required = false)     String title, 
+                                                        @RequestParam(defaultValue = "0")   int page, 
+                                                        @RequestParam(defaultValue = "10")  int size) {
+        return bookService.getBookSearch(author, title, page, size);
     }
     
     // without @Valid, the validator won't run - even if fields are annotated in Book
     @PostMapping
-    public ResponseEntity<Book> createBook(@Valid @RequestBody Book book) {
-        book.setId(counter.getAndIncrement());
-        books.add(book);
-        return ResponseEntity.status(HttpStatus.CREATED).body(book);
+    public ResponseEntity<BookResponseDTO> createBook(@Valid @RequestBody BookRequestDTO book) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(bookService.createBook(book));
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<Book> replaceBook(@PathVariable Long id, @Valid @RequestBody Book book) {
-        for (Book bk : books) {
-            if (bk.getId().equals(id)) { 
-                bk.setTitle(book.getTitle());
-                bk.setAuthor(book.getAuthor());
-                bk.setYearPublished(book.getYearPublished());
-                bk.setIsbn(book.getIsbn());
-                return ResponseEntity.ok(bk);
-            }
-        }
-        throw new ResourceNotFoundException("Book not found with id: " + id);
+    public ResponseEntity<BookResponseDTO> replaceBook(@PathVariable Long id, @Valid @RequestBody BookRequestDTO book) {
+        return ResponseEntity.ok(bookService.updateBook(id, book));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
-        Iterator<Book> it = books.iterator();
-        while(it.hasNext()) {
-            Book bk = it.next();
-            if (bk.getId().equals(id)) {
-                it.remove();
-                return ResponseEntity.noContent().build();
-            }
-        }
-        throw new ResourceNotFoundException("Book not found with id: " + id);
+        bookService.deleteBook(id);
+        return ResponseEntity.noContent().build();
     }
 }
