@@ -2,18 +2,18 @@ package com.exercises.hellospring.dto;
 
 public class BookResponseDTO {
     private String title;
-    private String author;
     private String isbn;
     private int yearPublished;
 
     // we want the object version of long because it supports null - and id isn't always present (in POST for example)
     private Long id;
+    private AuthorSummaryDTO authorSummary;
 
     public BookResponseDTO() {}
 
-    public BookResponseDTO(Long id, String title, String author, int yearPublished, String isbn) {
+    public BookResponseDTO(Long id, String title, int yearPublished, String isbn, AuthorSummaryDTO author) {
         this.title = title;
-        this.author = author;
+        this.authorSummary = author;
         this.isbn = isbn;
         this.yearPublished = yearPublished;
         this.id = id;
@@ -27,12 +27,12 @@ public class BookResponseDTO {
         this.title = title;
     }
 
-    public String getAuthor() {
-        return author;
+    public AuthorSummaryDTO getAuthor() {
+        return authorSummary;
     }
 
-    public void setAuthor(String author) {
-        this.author = author;
+    public void setAuthor(AuthorSummaryDTO author) {
+        this.authorSummary = author;
     }
 
     public String getIsbn() {

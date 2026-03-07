@@ -6,30 +6,38 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import com.exercises.hellospring.dto.AuthorSummaryDTO;
 import com.exercises.hellospring.dto.BookRequestDTO;
 import com.exercises.hellospring.dto.BookResponseDTO;
 import com.exercises.hellospring.dto.PagedResponse;
 import com.exercises.hellospring.exception.DuplicateResourceException;
 import com.exercises.hellospring.exception.ResourceNotFoundException;
+import com.exercises.hellospring.model.Author;
 import com.exercises.hellospring.model.Book;
+import com.exercises.hellospring.repository.AuthorRepository;
 import com.exercises.hellospring.repository.BookRepository;
 
 @Service
 public class BookServiceImpl implements BookService {
 
     BookRepository bookRepository;
+    AuthorRepository authorRepository;
 
-    BookServiceImpl(BookRepository repo) {
-        this.bookRepository = repo;
+    BookServiceImpl(BookRepository bookRepository, AuthorRepository authorRepository) {
+        this.bookRepository = bookRepository;
+        this.authorRepository = authorRepository;
     }
 
     @Override
-    public BookResponseDTO createBook(BookRequestDTO book) {
-        Optional<Book> currBook = bookRepository.findByIsbn(book.getIsbn());
+    public BookResponseDTO createBook(BookRequestDTO dto) {
+        Author author = authorRepository.findById(dto.getAuthorId()).orElseThrow(() -> new ResourceNotFoundException("Author not found with id: " + dto.getAuthorId()));
+
+        Optional<Book> currBook = bookRepository.findByIsbn(dto.getIsbn());
         if (currBook.isPresent()) {
-            throw new DuplicateResourceException("Book with ISBN " + book.getIsbn() + " already exists");
+            throw new DuplicateResourceException("Book with ISBN " + dto.getIsbn() + " already exists");
         }
-        Book newBook = new Book(null, book.getTitle(), book.getAuthor(), book.getYearPublished(), book.getIsbn());
+
+        Book newBook = new Book(null, dto.getTitle(), author, dto.getYearPublished(), dto.getIsbn());
         bookRepository.save(newBook); // JPA save() handles both UPDATE (if id is present) and INSERT (if no id present)
         return mapToResponseDTO(newBook);
     }
@@ -45,7 +53,8 @@ public class BookServiceImpl implements BookService {
     @Override
     public List<BookResponseDTO> getAllBooks() {
         List<BookResponseDTO> list = bookRepository.findAll().stream().map(b -> {
-            return new BookResponseDTO(b.getId(), b.getTitle(), b.getAuthor(), b.getYearPublished(), b.getIsbn());
+            AuthorSummaryDTO author = new AuthorSummaryDTO(b.getAuthor().getId(), b.getAuthor().getFirstName(), b.getAuthor().getLastName());
+            return new BookResponseDTO(b.getId(), b.getTitle(), b.getYearPublished(), b.getIsbn(), author);
         }).toList();
         return list;
     }
@@ -57,18 +66,20 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookResponseDTO updateBook(Long id, BookRequestDTO book) {
+    public BookResponseDTO updateBook(Long id, BookRequestDTO dto) {
         Book existing = bookRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
 
-        Optional<Book> isbnConflict = bookRepository.findByIsbn(book.getIsbn());
+        Optional<Book> isbnConflict = bookRepository.findByIsbn(dto.getIsbn());
         if (isbnConflict.isPresent() && !isbnConflict.get().getId().equals(id)) {
-            throw new DuplicateResourceException("Book with ISBN " + book.getIsbn() + " already exists");
+            throw new DuplicateResourceException("Book with ISBN " + dto.getIsbn() + " already exists");
         }
 
-        existing.setTitle(book.getTitle());
-        existing.setAuthor(book.getAuthor());
-        existing.setYearPublished(book.getYearPublished());
-        existing.setIsbn(book.getIsbn());
+        Author author = authorRepository.findById(dto.getAuthorId()).orElseThrow(() -> new ResourceNotFoundException("Author not found with id: " + dto.getAuthorId()));
+
+        existing.setTitle(dto.getTitle());
+        existing.setAuthor(author);
+        existing.setYearPublished(dto.getYearPublished());
+        existing.setIsbn(dto.getIsbn());
 
         Book saved = bookRepository.save(existing);
 
@@ -80,9 +91,13 @@ public class BookServiceImpl implements BookService {
         page = Math.max(page, 0);
         size = Math.max(size, 1);
 
+        // inefficient - fine for now
         List<BookResponseDTO> filtered = bookRepository.findAll().stream()
-            .filter(b -> author == null || author.isBlank() || b.getAuthor().toLowerCase().contains(author.toLowerCase()))
-            .filter(b -> title == null || title.isBlank() || b.getTitle().toLowerCase().contains(title.toLowerCase()))
+            .filter(b -> author == null || author.isBlank() || 
+                        b.getAuthor().getLastName().toLowerCase().contains(author.toLowerCase()) ||
+                        b.getAuthor().getFirstName().toLowerCase().contains(author.toLowerCase()))
+            .filter(b -> title == null || title.isBlank() || 
+                        b.getTitle().toLowerCase().contains(title.toLowerCase()))
             .map(b -> mapToResponseDTO(b))
             .toList();
 
@@ -95,7 +110,12 @@ public class BookServiceImpl implements BookService {
     }
     
     private BookResponseDTO mapToResponseDTO(Book book) {
-        BookResponseDTO res = new BookResponseDTO(book.getId(), book.getTitle(), book.getAuthor(), book.getYearPublished(), book.getIsbn() );
+        AuthorSummaryDTO authorSummary = new AuthorSummaryDTO(
+            book.getAuthor().getId(),
+            book.getAuthor().getFirstName(),
+            book.getAuthor().getLastName()
+        );
+        BookResponseDTO res = new BookResponseDTO(book.getId(), book.getTitle(), book.getYearPublished(), book.getIsbn(), authorSummary );
         return res;
     }
 

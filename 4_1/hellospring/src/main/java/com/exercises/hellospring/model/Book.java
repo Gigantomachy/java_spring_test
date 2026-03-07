@@ -1,10 +1,15 @@
 package com.exercises.hellospring.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 @Entity
 public class Book {
@@ -17,8 +22,10 @@ public class Book {
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false)
-    private String author;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id", nullable = false)
+    @JsonIgnoreProperties("books") // important to prevent infinite recursion during serialization (jackson)
+    private Author author;
     private int yearPublished;
 
     @Column(unique = true)
@@ -27,15 +34,11 @@ public class Book {
     // JPA requires a no arg constructor
     public Book() {}
 
-    public Book(String title, String author, int yearPublished, String isbn) {
+    public Book(Long id, String title, Author author, int yearPublished, String isbn) {
         this.title = title;
         this.author = author;
         this.yearPublished = yearPublished;
         this.isbn = isbn;
-    }
-
-    public Book(Long id, String title, String author, int yearPublished, String isbn) {
-        this(title, author, yearPublished, isbn);
         this.id = id;
     }
 
@@ -51,10 +54,10 @@ public class Book {
     public void setTitle(String title) {
         this.title = title;
     }
-    public String getAuthor() {
+    public Author getAuthor() {
         return author;
     }
-    public void setAuthor(String author) {
+    public void setAuthor(Author author) {
         this.author = author;
     }
     public int getYearPublished() {

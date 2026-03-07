@@ -2,6 +2,7 @@ package com.exercises.hellospring.dto;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
@@ -14,8 +15,8 @@ public class BookRequestDTO {
     @Size(max = 200)
     private String title;
 
-    @NotBlank(message = "Author is required")
-    private String author;
+    @NotNull(message = "Author is required")
+    private Long authorId;
 
     @NotBlank
     @Pattern(regexp = "^(978|979)-\\d{10}$", message = "ISBN must be in format 978-XXXXXXXXXX or 979-XXXXXXXXXX")
@@ -27,9 +28,9 @@ public class BookRequestDTO {
     // Jackson prefers default constructor + setters
     public BookRequestDTO() {}
 
-    public BookRequestDTO(String title, String author, int yearPublished, String isbn) {
+    public BookRequestDTO(String title, Long authorId, int yearPublished, String isbn) {
         this.title = title;
-        this.author = author;
+        this.authorId = authorId;
         this.isbn = isbn;
         this.yearPublished = yearPublished;
     }
@@ -38,8 +39,8 @@ public class BookRequestDTO {
         this.title = title;
     }
 
-    public void setAuthor(String author) {
-        this.author = author;
+    public void setAuthorId(Long author) {
+        this.authorId = author;
     }
 
     public void setIsbn(String isbn) {
@@ -54,8 +55,8 @@ public class BookRequestDTO {
         return title;
     }
 
-    public String getAuthor() {
-        return author;
+    public Long getAuthorId() {
+        return authorId;
     }
 
     public String getIsbn() {
