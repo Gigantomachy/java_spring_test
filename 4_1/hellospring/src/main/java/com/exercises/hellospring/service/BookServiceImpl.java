@@ -30,16 +30,16 @@ public class BookServiceImpl implements BookService {
             throw new DuplicateResourceException("Book with ISBN " + book.getIsbn() + " already exists");
         }
         Book newBook = new Book(null, book.getTitle(), book.getAuthor(), book.getYearPublished(), book.getIsbn());
-        bookRepository.save(newBook);
+        bookRepository.save(newBook); // JPA save() handles both UPDATE (if id is present) and INSERT (if no id present)
         return mapToResponseDTO(newBook);
     }
 
     @Override
     public void deleteBook(Long id) {
-        boolean res = bookRepository.delete(id);
-        if (!res) {
+        if (!bookRepository.existsById(id)) {
             throw new ResourceNotFoundException("Book not found with id: " + id);
         }
+        bookRepository.deleteById(id);
     }
 
     @Override
@@ -58,18 +58,21 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public BookResponseDTO updateBook(Long id, BookRequestDTO book) {
-        // bad design - books really should be identified by isbn and not id, but that's beyond this scope
+        Book existing = bookRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
 
-        bookRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
-
-        Optional<Book> currBook = bookRepository.findByIsbn(book.getIsbn());
-        if (currBook.isPresent() && !currBook.get().getId().equals(id)) {
+        Optional<Book> isbnConflict = bookRepository.findByIsbn(book.getIsbn());
+        if (isbnConflict.isPresent() && !isbnConflict.get().getId().equals(id)) {
             throw new DuplicateResourceException("Book with ISBN " + book.getIsbn() + " already exists");
         }
 
-        Book newbook = bookRepository.update(id, new Book(null, book.getTitle(), book.getAuthor(), book.getYearPublished(), book.getIsbn()))
-                                     .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
-        return mapToResponseDTO(newbook);
+        existing.setTitle(book.getTitle());
+        existing.setAuthor(book.getAuthor());
+        existing.setYearPublished(book.getYearPublished());
+        existing.setIsbn(book.getIsbn());
+
+        Book saved = bookRepository.save(existing);
+
+        return mapToResponseDTO(saved);
     }
 
     @Override
