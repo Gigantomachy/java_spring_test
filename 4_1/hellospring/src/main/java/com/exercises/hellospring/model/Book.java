@@ -27,12 +27,16 @@ public class Book {
     // JPA requires a no arg constructor
     public Book() {}
 
-    public Book(Long id, String title, String author, int yearPublished, String isbn) {
-        this.id = id;
+    public Book(String title, String author, int yearPublished, String isbn) {
         this.title = title;
         this.author = author;
         this.yearPublished = yearPublished;
         this.isbn = isbn;
+    }
+
+    public Book(Long id, String title, String author, int yearPublished, String isbn) {
+        this(title, author, yearPublished, isbn);
+        this.id = id;
     }
 
     public Long getId() {
