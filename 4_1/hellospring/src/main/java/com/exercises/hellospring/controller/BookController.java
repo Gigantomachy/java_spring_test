@@ -6,8 +6,12 @@ import jakarta.validation.Valid;
 
 import com.exercises.hellospring.dto.BookRequestDTO;
 import com.exercises.hellospring.dto.BookResponseDTO;
-import com.exercises.hellospring.dto.PagedResponse;
+import com.exercises.hellospring.dto.PagedBookResponseDTO;
 
+// import com.exercises.hellospring.dto.PagedResponse;
+import org.springframework.data.domain.Pageable;
+
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -39,14 +43,20 @@ public class BookController {
         return bookService.getAllBooks();
     }
 
+    // @GetMapping("/search")
+    // public PagedResponse<BookResponseDTO> getBookSearch(
+    //                                                     @RequestParam(required = false)     String author, 
+    //                                                     @RequestParam(required = false)     String title, 
+    //                                                     @RequestParam(defaultValue = "0")   int page, 
+    //                                                     @RequestParam(defaultValue = "10")  int size) {
+    //     return bookService.getBookSearch(author, title, page, size);
+    // }
+
     @GetMapping("/search")
-    public PagedResponse<BookResponseDTO> getBookSearch(
-                                                        @RequestParam(required = false)     String author, 
-                                                        @RequestParam(required = false)     String title, 
-                                                        @RequestParam(defaultValue = "0")   int page, 
-                                                        @RequestParam(defaultValue = "10")  int size) {
-        return bookService.getBookSearch(author, title, page, size);
+    public PagedBookResponseDTO getBookSearch(@PageableDefault(page = 0, size = 10, sort = "title") Pageable pageable) {
+        return bookService.getBookSearch(pageable);
     }
+    
 
     @GetMapping("/search/advanced")
     public List<BookResponseDTO> getBookSearchAdvanced(@RequestParam(required = true) String keyword) {

@@ -1,17 +1,19 @@
 package com.exercises.hellospring.service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 
 import com.exercises.hellospring.dto.AuthorSummaryDTO;
 import com.exercises.hellospring.dto.BookRequestDTO;
 import com.exercises.hellospring.dto.BookResponseDTO;
 import com.exercises.hellospring.dto.CategoryListDTO;
-import com.exercises.hellospring.dto.PagedResponse;
+import com.exercises.hellospring.dto.PagedBookResponseDTO;
+//import com.exercises.hellospring.dto.PagedResponse;
 import com.exercises.hellospring.exception.DuplicateResourceException;
 import com.exercises.hellospring.exception.ResourceNotFoundException;
 import com.exercises.hellospring.model.Author;
@@ -32,28 +34,6 @@ public class BookServiceImpl implements BookService {
         this.bookRepository = bookRepository;
         this.authorRepository = authorRepository;
         this.categoryRepository = categoryRepository;
-    }
-
-    @Override
-    public BookResponseDTO createBook(BookRequestDTO dto) {
-        Author author = authorRepository.findById(dto.getAuthorId()).orElseThrow(() -> new ResourceNotFoundException("Author not found with id: " + dto.getAuthorId()));
-
-        Optional<Book> currBook = bookRepository.findByIsbn(dto.getIsbn());
-        if (currBook.isPresent()) {
-            throw new DuplicateResourceException("Book with ISBN " + dto.getIsbn() + " already exists");
-        }
-
-        Book newBook = new Book(null, dto.getTitle(), author, dto.getYearPublished(), dto.getIsbn());
-        bookRepository.save(newBook); // JPA save() handles both UPDATE (if id is present) and INSERT (if no id present)
-        return mapToResponseDTO(newBook);
-    }
-
-    @Override
-    public void deleteBook(Long id) {
-        if (!bookRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Book not found with id: " + id);
-        }
-        bookRepository.deleteById(id);
     }
 
     @Override
@@ -81,6 +61,12 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    public PagedBookResponseDTO getBookSearch(Pageable pageable) {
+        Page<Book> pageBook = bookRepository.findAll(pageable);
+        return mapToPagedBookResponseDTO(pageBook);
+    }
+
+    @Override
     public BookResponseDTO updateBook(Long id, BookRequestDTO dto) {
         Book existing = bookRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
 
@@ -101,27 +87,49 @@ public class BookServiceImpl implements BookService {
         return mapToResponseDTO(saved);
     }
 
+    // @Override
+    // public PagedResponse<BookResponseDTO> getBookSearch(String author, String title, int page, int size) {
+    //     page = Math.max(page, 0);
+    //     size = Math.max(size, 1);
+
+    //     // inefficient - fine for now
+    //     List<BookResponseDTO> filtered = bookRepository.findAll().stream()
+    //         .filter(b -> author == null || author.isBlank() || 
+    //                     b.getAuthor().getLastName().toLowerCase().contains(author.toLowerCase()) ||
+    //                     b.getAuthor().getFirstName().toLowerCase().contains(author.toLowerCase()))
+    //         .filter(b -> title == null || title.isBlank() || 
+    //                     b.getTitle().toLowerCase().contains(title.toLowerCase()))
+    //         .map(b -> mapToResponseDTO(b))
+    //         .toList();
+
+    //     int fromIndex = page * size;
+    //     int toIndex = Math.min(fromIndex + size, filtered.size());
+    //     int totalPages = (filtered.size() + size - 1) / size;
+    //     List<BookResponseDTO> result = fromIndex >= filtered.size() ? Collections.emptyList() : filtered.subList(fromIndex, toIndex);
+
+    //     return new PagedResponse<>(result, page, size, filtered.size(), totalPages);
+    // }
+
     @Override
-    public PagedResponse<BookResponseDTO> getBookSearch(String author, String title, int page, int size) {
-        page = Math.max(page, 0);
-        size = Math.max(size, 1);
+    public BookResponseDTO createBook(BookRequestDTO dto) {
+        Author author = authorRepository.findById(dto.getAuthorId()).orElseThrow(() -> new ResourceNotFoundException("Author not found with id: " + dto.getAuthorId()));
 
-        // inefficient - fine for now
-        List<BookResponseDTO> filtered = bookRepository.findAll().stream()
-            .filter(b -> author == null || author.isBlank() || 
-                        b.getAuthor().getLastName().toLowerCase().contains(author.toLowerCase()) ||
-                        b.getAuthor().getFirstName().toLowerCase().contains(author.toLowerCase()))
-            .filter(b -> title == null || title.isBlank() || 
-                        b.getTitle().toLowerCase().contains(title.toLowerCase()))
-            .map(b -> mapToResponseDTO(b))
-            .toList();
+        Optional<Book> currBook = bookRepository.findByIsbn(dto.getIsbn());
+        if (currBook.isPresent()) {
+            throw new DuplicateResourceException("Book with ISBN " + dto.getIsbn() + " already exists");
+        }
 
-        int fromIndex = page * size;
-        int toIndex = Math.min(fromIndex + size, filtered.size());
-        int totalPages = (filtered.size() + size - 1) / size;
-        List<BookResponseDTO> result = fromIndex >= filtered.size() ? Collections.emptyList() : filtered.subList(fromIndex, toIndex);
+        Book newBook = new Book(null, dto.getTitle(), author, dto.getYearPublished(), dto.getIsbn());
+        bookRepository.save(newBook); // JPA save() handles both UPDATE (if id is present) and INSERT (if no id present)
+        return mapToResponseDTO(newBook);
+    }
 
-        return new PagedResponse<>(result, page, size, filtered.size(), totalPages);
+    @Override
+    public void deleteBook(Long id) {
+        if (!bookRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Book not found with id: " + id);
+        }
+        bookRepository.deleteById(id);
     }
 
     public BookResponseDTO addCategoryToBook(Long bookId, Long categoryId) {
@@ -155,6 +163,22 @@ public class BookServiceImpl implements BookService {
         res.setCategories(catDTO);
 
         return res;
+    }
+
+    private PagedBookResponseDTO mapToPagedBookResponseDTO(Page<Book> bookPages) {
+        List<BookResponseDTO> dtoContent = bookPages.getContent().stream().map(b -> {
+            AuthorSummaryDTO author = new AuthorSummaryDTO(b.getAuthor().getId(), b.getAuthor().getFirstName(), b.getAuthor().getLastName());
+            return new BookResponseDTO(b.getId(), b.getTitle(), b.getYearPublished(), b.getIsbn(), author);
+        }).toList();
+        return new PagedBookResponseDTO(
+            dtoContent,
+            bookPages.getNumber(),
+            bookPages.getSize(),
+            bookPages.getTotalElements(),
+            bookPages.getTotalPages(),
+            bookPages.isFirst(),
+            bookPages.isLast()
+        );
     }
 
 }
