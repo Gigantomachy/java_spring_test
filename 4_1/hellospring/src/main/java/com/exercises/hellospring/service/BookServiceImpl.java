@@ -72,6 +72,15 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    public List<BookResponseDTO> getBookSearchAdvanced(String keyword) {
+        List<BookResponseDTO> books = bookRepository.searchBooks(keyword).stream().map(b -> {
+            AuthorSummaryDTO author = new AuthorSummaryDTO(b.getAuthor().getId(), b.getAuthor().getFirstName(), b.getAuthor().getLastName());
+            return new BookResponseDTO(b.getId(), b.getTitle(), b.getYearPublished(), b.getIsbn(), author);
+        }).toList();
+        return books;
+    }
+
+    @Override
     public BookResponseDTO updateBook(Long id, BookRequestDTO dto) {
         Book existing = bookRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
 
@@ -114,6 +123,21 @@ public class BookServiceImpl implements BookService {
 
         return new PagedResponse<>(result, page, size, filtered.size(), totalPages);
     }
+
+    public BookResponseDTO addCategoryToBook(Long bookId, Long categoryId) {
+        Book book = bookRepository.findById(bookId).orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + bookId));
+        Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + categoryId));
+        book.addCategory(category);
+        book = bookRepository.save(book);
+        return mapToResponseDTO(book);
+    }
+
+    public void removeCategoryFromBook(Long bookId, Long categoryId) {
+        Book book = bookRepository.findById(bookId).orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + bookId));
+        Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + categoryId));
+        book.removeCategory(category);
+        book = bookRepository.save(book);
+    }
     
     private BookResponseDTO mapToResponseDTO(Book book) {
         AuthorSummaryDTO authorSummary = new AuthorSummaryDTO(
@@ -131,21 +155,6 @@ public class BookServiceImpl implements BookService {
         res.setCategories(catDTO);
 
         return res;
-    }
-
-    public BookResponseDTO addCategoryToBook(Long bookId, Long categoryId) {
-        Book book = bookRepository.findById(bookId).orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + bookId));
-        Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + categoryId));
-        book.addCategory(category);
-        book = bookRepository.save(book);
-        return mapToResponseDTO(book);
-    }
-
-    public void removeCategoryFromBook(Long bookId, Long categoryId) {
-        Book book = bookRepository.findById(bookId).orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + bookId));
-        Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + categoryId));
-        book.removeCategory(category);
-        book = bookRepository.save(book);
     }
 
 }

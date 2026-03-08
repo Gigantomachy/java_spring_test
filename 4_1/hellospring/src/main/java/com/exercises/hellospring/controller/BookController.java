@@ -39,11 +39,6 @@ public class BookController {
         return bookService.getAllBooks();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<BookResponseDTO> getBook(@PathVariable Long id) {
-        return ResponseEntity.status(200).body(bookService.getBookById(id));
-    }
-
     @GetMapping("/search")
     public PagedResponse<BookResponseDTO> getBookSearch(
                                                         @RequestParam(required = false)     String author, 
@@ -51,6 +46,16 @@ public class BookController {
                                                         @RequestParam(defaultValue = "0")   int page, 
                                                         @RequestParam(defaultValue = "10")  int size) {
         return bookService.getBookSearch(author, title, page, size);
+    }
+
+    @GetMapping("/search/advanced")
+    public List<BookResponseDTO> getBookSearchAdvanced(@RequestParam(required = true) String keyword) {
+        return bookService.getBookSearchAdvanced(keyword);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<BookResponseDTO> getBook(@PathVariable Long id) {
+        return ResponseEntity.status(200).body(bookService.getBookById(id));
     }
     
     // without @Valid, the validator won't run - even if fields are annotated in Book
