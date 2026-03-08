@@ -24,10 +24,12 @@ public class Author {
     String biography;
     LocalDate birthDate;
 
+    // mappedBy -> non-owning
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnoreProperties("author")
     List<Book> books;
 
+    // for JPA
     public Author() {}
 
     public Long getId() {

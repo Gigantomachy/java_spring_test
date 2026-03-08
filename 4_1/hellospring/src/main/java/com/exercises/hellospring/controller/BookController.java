@@ -58,6 +58,11 @@ public class BookController {
     public ResponseEntity<BookResponseDTO> createBook(@Valid @RequestBody BookRequestDTO book) {
         return ResponseEntity.status(HttpStatus.CREATED).body(bookService.createBook(book));
     }
+
+    @PostMapping("/api/books/{bookId}/categories/{categoryId}")
+    public ResponseEntity<BookResponseDTO> addCategoryToBook(@PathVariable Long bookId, @PathVariable Long categoryId) {
+        return ResponseEntity.ok(bookService.addCategoryToBook(bookId, categoryId));
+    }
     
     @PutMapping("/{id}")
     public ResponseEntity<BookResponseDTO> replaceBook(@PathVariable Long id, @Valid @RequestBody BookRequestDTO book) {
@@ -67,6 +72,12 @@ public class BookController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
         bookService.deleteBook(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/api/books/{bookId}/categories/{categoryId}")
+    public ResponseEntity<Void> removeCategoryFromBook(@PathVariable Long bookId, @PathVariable Long categoryId) {
+        bookService.removeCategoryFromBook(bookId, categoryId);
         return ResponseEntity.noContent().build();
     }
 }

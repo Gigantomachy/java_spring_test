@@ -3,29 +3,35 @@ package com.exercises.hellospring.service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
 import com.exercises.hellospring.dto.AuthorSummaryDTO;
 import com.exercises.hellospring.dto.BookRequestDTO;
 import com.exercises.hellospring.dto.BookResponseDTO;
+import com.exercises.hellospring.dto.CategoryListDTO;
 import com.exercises.hellospring.dto.PagedResponse;
 import com.exercises.hellospring.exception.DuplicateResourceException;
 import com.exercises.hellospring.exception.ResourceNotFoundException;
 import com.exercises.hellospring.model.Author;
 import com.exercises.hellospring.model.Book;
+import com.exercises.hellospring.model.Category;
 import com.exercises.hellospring.repository.AuthorRepository;
 import com.exercises.hellospring.repository.BookRepository;
+import com.exercises.hellospring.repository.CategoryRepository;
 
 @Service
 public class BookServiceImpl implements BookService {
 
-    BookRepository bookRepository;
-    AuthorRepository authorRepository;
+    private CategoryRepository categoryRepository;
+    private BookRepository bookRepository;
+    private AuthorRepository authorRepository;
 
-    BookServiceImpl(BookRepository bookRepository, AuthorRepository authorRepository) {
+    BookServiceImpl(BookRepository bookRepository, AuthorRepository authorRepository, CategoryRepository categoryRepository) {
         this.bookRepository = bookRepository;
         this.authorRepository = authorRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     @Override
@@ -116,7 +122,30 @@ public class BookServiceImpl implements BookService {
             book.getAuthor().getLastName()
         );
         BookResponseDTO res = new BookResponseDTO(book.getId(), book.getTitle(), book.getYearPublished(), book.getIsbn(), authorSummary );
+
+        Set<Category> categories = book.getCategories();
+        CategoryListDTO catDTO = new CategoryListDTO();
+        for (Category cat: categories) {
+            catDTO.addCategory(cat.getName());
+        }
+        res.setCategories(catDTO);
+
         return res;
+    }
+
+    public BookResponseDTO addCategoryToBook(Long bookId, Long categoryId) {
+        Book book = bookRepository.findById(bookId).orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + bookId));
+        Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + categoryId));
+        book.addCategory(category);
+        book = bookRepository.save(book);
+        return mapToResponseDTO(book);
+    }
+
+    public void removeCategoryFromBook(Long bookId, Long categoryId) {
+        Book book = bookRepository.findById(bookId).orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + bookId));
+        Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + categoryId));
+        book.removeCategory(category);
+        book = bookRepository.save(book);
     }
 
 }

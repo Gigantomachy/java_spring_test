@@ -8,6 +8,7 @@ public class BookResponseDTO {
     // we want the object version of long because it supports null - and id isn't always present (in POST for example)
     private Long id;
     private AuthorSummaryDTO authorSummary;
+    private CategoryListDTO categories;
 
     public BookResponseDTO() {}
 
@@ -59,6 +60,8 @@ public class BookResponseDTO {
         this.id = id;
     }
 
-    
+    public void setCategories(CategoryListDTO categories) {
+        this.categories = categories;
+    }
 
 }
