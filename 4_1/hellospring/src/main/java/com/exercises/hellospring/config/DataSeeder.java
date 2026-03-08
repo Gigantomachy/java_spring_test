@@ -7,7 +7,9 @@ import org.springframework.stereotype.Component;
 
 import com.exercises.hellospring.model.Book;
 import com.exercises.hellospring.model.Author;
+import com.exercises.hellospring.model.Category;
 import com.exercises.hellospring.repository.BookRepository;
+import com.exercises.hellospring.repository.CategoryRepository;
 import com.exercises.hellospring.repository.AuthorRepository;
 
 @Component
@@ -15,14 +17,41 @@ public class DataSeeder implements CommandLineRunner {
 
     BookRepository bookRepository;
     AuthorRepository authorRepository;
+    CategoryRepository categoryRepository;
 
-    public DataSeeder(BookRepository bookRepository, AuthorRepository authorRepository) {
+    public DataSeeder(BookRepository bookRepository, AuthorRepository authorRepository, CategoryRepository categoryRepository) {
         this.bookRepository = bookRepository;
         this.authorRepository = authorRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     @Override
     public void run(String... args) throws Exception {
+
+        Category fiction = new Category();
+        fiction.setName("Fiction");
+        fiction.setDescription("Fictional literature");
+        categoryRepository.save(fiction);
+
+        Category scifi = new Category();
+        scifi.setName("Science Fiction");
+        scifi.setDescription("Science fiction literature");
+        categoryRepository.save(scifi);
+
+        Category dystopian = new Category();
+        dystopian.setName("Dystopian");
+        dystopian.setDescription("Dystopian fiction");
+        categoryRepository.save(dystopian);
+
+        Category fantasy = new Category();
+        fantasy.setName("Fantasy");
+        fantasy.setDescription("Fantasy literature");
+        categoryRepository.save(fantasy);
+
+        Category classic = new Category();
+        classic.setName("Classic");
+        classic.setDescription("Classic literature");
+        categoryRepository.save(classic);
 
         Author orwell = new Author();
         orwell.setFirstName("George");

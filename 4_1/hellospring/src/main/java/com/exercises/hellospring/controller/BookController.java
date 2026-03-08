@@ -59,7 +59,7 @@ public class BookController {
         return ResponseEntity.status(HttpStatus.CREATED).body(bookService.createBook(book));
     }
 
-    @PostMapping("/api/books/{bookId}/categories/{categoryId}")
+    @PostMapping("/{bookId}/categories/{categoryId}")
     public ResponseEntity<BookResponseDTO> addCategoryToBook(@PathVariable Long bookId, @PathVariable Long categoryId) {
         return ResponseEntity.ok(bookService.addCategoryToBook(bookId, categoryId));
     }
@@ -75,7 +75,7 @@ public class BookController {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/api/books/{bookId}/categories/{categoryId}")
+    @DeleteMapping("/{bookId}/categories/{categoryId}")
     public ResponseEntity<Void> removeCategoryFromBook(@PathVariable Long bookId, @PathVariable Long categoryId) {
         bookService.removeCategoryFromBook(bookId, categoryId);
         return ResponseEntity.noContent().build();

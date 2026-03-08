@@ -1,5 +1,6 @@
 package com.exercises.hellospring.model;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -41,10 +42,12 @@ public class Book {
     @ManyToMany 
     @JoinTable(name = "book_category", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "category_id"))
     @JsonIgnoreProperties("books")
-    Set<Category> categories;
+    private Set<Category> categories;
 
     // JPA requires a no arg constructor
-    public Book() {}
+    public Book() {
+        this.categories = new HashSet<>();
+    }
 
     public Book(Long id, String title, Author author, int yearPublished, String isbn) {
         this.title = title;
@@ -52,6 +55,7 @@ public class Book {
         this.yearPublished = yearPublished;
         this.isbn = isbn;
         this.id = id;
+        this.categories = new HashSet<>();
     }
 
     public Long getId() {

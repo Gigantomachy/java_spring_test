@@ -64,4 +64,8 @@ public class BookResponseDTO {
         this.categories = categories;
     }
 
+    public CategoryListDTO getCategories() {
+        return this.categories;
+    }
+
 }
