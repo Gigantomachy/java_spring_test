@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
@@ -13,7 +14,8 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
-@EnableWebSecurity
+@EnableWebSecurity // security at the http level
+@EnableMethodSecurity // security at the method level - enables @PreAuthorize in BookService and other places
 public class SecurityConfig {
     
     // order matters - spring security evaluates top down and stops at the first match
@@ -21,12 +23,20 @@ public class SecurityConfig {
     public SecurityFilterChain getSecurityFilterChain(HttpSecurity http) throws Exception {
         // NOTE: /api/authors would fall into anyRequest().authenticated() here
 
+        // http.authorizeHttpRequests((authorize) -> authorize
+        //                                         .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
+        //                                         .requestMatchers(HttpMethod.POST, "/api/books/**").authenticated()
+        //                                         .requestMatchers(HttpMethod.PUT, "/api/books/**").authenticated()
+        //                                         .requestMatchers(HttpMethod.DELETE, "/api/books/**").authenticated()
+        //                                         .requestMatchers("/h2-console/**").permitAll().anyRequest().authenticated());
+
         http.authorizeHttpRequests((authorize) -> authorize
-                                                .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
-                                                .requestMatchers(HttpMethod.POST, "/api/books/**").authenticated()
-                                                .requestMatchers(HttpMethod.PUT, "/api/books/**").authenticated()
-                                                .requestMatchers(HttpMethod.DELETE, "/api/books/**").authenticated()
+                                                .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
+                                                .requestMatchers(HttpMethod.POST, "/api/**").hasRole("USER")
+                                                .requestMatchers(HttpMethod.PUT, "/api/**").hasRole("USER")
+                                                .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
                                                 .requestMatchers("/h2-console/**").permitAll().anyRequest().authenticated());
+        
         
         http.httpBasic(Customizer.withDefaults());
         http.csrf((csrf) -> csrf.disable()); // we are building a stateless API

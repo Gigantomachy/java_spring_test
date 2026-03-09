@@ -8,6 +8,7 @@ import com.exercises.hellospring.dto.BookResponseDTO;
 import com.exercises.hellospring.dto.PagedBookResponseDTO;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 public interface BookService {
     
@@ -19,6 +20,10 @@ public interface BookService {
 
     BookResponseDTO createBook(BookRequestDTO book);
     BookResponseDTO updateBook(Long id, BookRequestDTO book);
+
+    // @EnableWebSecurity should prevent non-authenticated web requests, but this can still happen: bookService.deleteBook(123L);
+    // as it bypasses the HTTP layer. @PreAuthorize should stop that
+    @PreAuthorize("hasRole('ADMIN')")
     void deleteBook(Long id);
     
 

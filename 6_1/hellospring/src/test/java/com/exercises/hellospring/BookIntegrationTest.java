@@ -127,7 +127,7 @@ public class BookIntegrationTest {
 
         Long id = createResponse.getBody().getId();
 
-        authTemplate.delete("/api/books/" + id);
+        restTemplate.withBasicAuth("admin", "admin123").delete("/api/books/" + id);
 
         // don't deserialize the JSON - just gimme the raw string
         ResponseEntity<String> getResponse = restTemplate.getForEntity(
