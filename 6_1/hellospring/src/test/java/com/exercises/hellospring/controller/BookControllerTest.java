@@ -6,6 +6,7 @@ import com.exercises.hellospring.dto.AuthorSummaryDTO;
 import com.exercises.hellospring.dto.BookRequestDTO;
 import com.exercises.hellospring.dto.BookResponseDTO;
 import com.exercises.hellospring.exception.ResourceNotFoundException;
+import com.exercises.hellospring.security.JwtService;
 import com.exercises.hellospring.service.BookService;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +35,9 @@ public class BookControllerTest {
 
     @MockitoBean
     BookService bookService;
+
+    @MockitoBean
+    JwtService jwtService;
 
     BookResponseDTO dto1;
     BookResponseDTO dto2;
